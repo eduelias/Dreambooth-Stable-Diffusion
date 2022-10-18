@@ -1,9 +1,12 @@
-import argparse, os, sys, glob
+import argparse, os
 import torch
 import numpy as np
+import time 
+import hashlib 
+
 from omegaconf import OmegaConf
 from PIL import Image
-from tqdm import tqdm, trange
+from tqdm import trange
 from einops import rearrange
 from torchvision.utils import make_grid, save_image
 
@@ -170,14 +173,15 @@ if __name__ == "__main__":
     grid = rearrange(grid, 'n b c h w -> (n b) c h w')
     
     for i in range(grid.size(0)):
-           save_image(grid[i, :, :, :], os.path.join(outpath,opt.prompt+'_{}.png'.format(i)))
+           save_image(grid[i, :, :, :], os.path.join(outpath,'{}-{}_{}.png'.format(time.time(), hashlib.md5(opt.prompt).hexdigest(),i)))
            
     grid = make_grid(grid, nrow=opt.n_samples)
     
 
     # to image
     grid = 255. * rearrange(grid, 'c h w -> h w c').cpu().numpy()
-    Image.fromarray(grid.astype(np.uint8)).save(os.path.join(outpath, f'{prompt.replace(" ", "-")}.jpg'))
+    im = Image.fromarray(grid.astype(np.uint8))
+    im.save(os.path.join(outpath, f'{time.time()}-{hashlib.md5(prompt).hexdigest()}.jpg'))
     
     
 
